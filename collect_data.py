@@ -1,11 +1,18 @@
 import numpy as np
+import csv
 import cv2
 import time
 from grabkeys import key_check
 import os
 from grabscreen import grabscreen
+from PIL import Image
 
-train_file = 'training_data.npy'
+
+DATA_FOLDER = 'data/'
+
+f = open('annotations.csv', 'a')
+
+writer = csv.writer(f)
 
 w  = [1,0,0,0,0,0,0,0,0]
 s  = [0,1,0,0,0,0,0,0,0]
@@ -25,51 +32,46 @@ def keys_to_output(keys):
     output = [0,0,0,0,0,0,0,0,0]
 
     if 'W' in keys and 'A' in keys:
-        output = wa
+        output = np.argmax(wa) #wa
     elif 'W' in keys and 'D' in keys:
-        output = wd
+        output = np.argmax(wd)
     elif 'S' in keys and 'A' in keys:
-        output = sa
+        output = np.argmax(sa) #sa
     elif 'S' in keys and 'D' in keys:
-        output = sd
+        output = np.argmax(sd) #sd
     elif 'W' in keys:
-        output = w
+        output = np.argmax(w) # w
     elif 'S' in keys:
-        output = s
+        output = np.argmax(s) #s
     elif 'A' in keys:
-        output = a
+        output = np.argmax(a) #a
     elif 'D' in keys:
-        output = d
+        output = np.argmax(d) #d
     else:
-        output = w
-    
+        output = np.argmax(w) #w 
     return output
 
-if os.path.isfile(file_name):
-    print('File exists, loading previous data!')
-    training_data = list(np.load(file_name))
-else:
-    print('File does not exist!')
-    training_data = []
 
 def main():
+    print('cap on')
     paused = False
     while True:
         if not paused:
             screen = grabscreen()
-            keys = check_keys()
+            image_name = f'train_{np.random.uniform()}.png' # unique image name
+            cv2.imwrite(DATA_FOLDER + image_name, screen)
+            keys = key_check()
             output = keys_to_output(keys)
-            training_data.append([screen,output])
-            
-            if len(training_data) % 1000 == 0:
-                np.save(file_name,training_data)
-
+            writer.writerow([image_name, output])
         keys = key_check()
         if 'T' in keys:
             if paused:
+                print('paused')
                 paused = False
             else:
                 paused = True
+    
 
-main()
+if __name__ == "__main__":
+    main()
 
